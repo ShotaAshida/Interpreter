@@ -1,5 +1,8 @@
 type 'a t = 'a list
 
+exception Error of string
+let err s = raise (Error s)
+
 let empty = []
 
 let singleton x = [x]
@@ -30,4 +33,3 @@ let rec map f = function
 let rec bigunion = function
     [] -> []
   | set1 :: rest -> union set1 (bigunion rest)
-

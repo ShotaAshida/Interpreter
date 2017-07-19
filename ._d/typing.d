@@ -1,2 +1,2 @@
-typing.cmo : syntax.cmo environment.cmi
-typing.cmx : syntax.cmx environment.cmx
+typing.cmo : syntax.cmo mySet.cmi environment.cmi
+typing.cmx : syntax.cmx mySet.cmx environment.cmx

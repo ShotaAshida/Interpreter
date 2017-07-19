@@ -9,15 +9,17 @@ type ty = TyInt | TyBool | TyVar of tyvar | TyFun of ty * ty
 
 
 
-let pp_ty = function  TyInt -> print_string "int"
+let rec pp_ty = function  TyInt -> print_string "int"
                     | TyBool -> print_string "bool"
-                    | TyVar x -> print_string (string_of_int x)
-                    | TyFun (x, y) -> print_string "tyfun"
+                    | TyVar x -> print_string ("'a" ^ string_of_int x) 
+                    | TyFun (x, y) -> print_string "(" ; pp_ty x ; print_string " -> ";  pp_ty y ; print_string ")"
 
 let fresh_tyvar = let counter = ref 0 in 
                     let body () = 
                         let v = !counter in
                             counter := v + 1 ; v in body
+
+
 let rec freevar_ty = function
                           TyVar x -> MySet.singleton x
                         | TyFun (x, y) -> let tyx = freevar_ty x in
