@@ -95,7 +95,69 @@ let rec ty_exp tyenv = function
       let eqs3 = eqs_of_subst s3 in
       let eqs = eqs1 @ eqs2 @ eqs3 @ [(ty2, ty3) ; (ty1, TyBool)] in
       let s4 = unify( eqs_of_subst (unify eqs)) in (s4, subst_type s4 ty2)
+      (* (match ty_exp tyenv exp1 with
+           (sub1, TyBool) ->
+                          let (s1, ty1) = ty_exp tyenv exp2 in
+                          let (s2, ty2) = ty_exp tyenv exp3 in
+                          let s3 = (eqs_of_subst s1) @ (eqs_of_subst s2) in
+                          let eqs1 = unify s3 in
+                          let ty3 = subst_type eqs1 ty1 in
+                          let ty4 = subst_type eqs1 ty2 in
+                              (match ty3, ty4 with
+                                  TyInt, TyInt -> ( eqs1, ty3 )
+                                | TyBool, TyBool -> (eqs1, ty3)
+                                | TyVar p, TyVar q -> let eqs2 = unify ( eqs_of_subst ((q, TyVar p) :: eqs1) )
+                                                        in (eqs2, subst_type eqs2 ty3)
+                                | TyInt, TyVar p -> let eqs2 = unify ( eqs_of_subst ((p, TyInt) :: eqs1) )
+                                                        in (eqs2, TyInt)
+                                | TyBool, TyVar p -> let eqs2 = unify ( eqs_of_subst ((p, TyBool) :: eqs1) )
+                                                        in (eqs2, TyBool)
+                                | TyFun(a, b), TyVar p -> let eqs2 = unify ( eqs_of_subst ((p, ty3) :: eqs1) )
+                                                        in (eqs2, ty3)
+                                | TyVar p, TyInt -> let eqs2 = unify ( eqs_of_subst ((p, ty4) :: eqs1) )
+                                                        in (eqs2, ty4)
+                                | TyVar p, TyBool -> let eqs2 = unify ( eqs_of_subst ((p, ty4) :: eqs1) )
+                                                        in (eqs2, ty4)
+                                | TyVar p, TyFun (a, b) -> let eqs2 = unify ( eqs_of_subst ((p, ty4) :: eqs1) )
+                                                        in (eqs2, ty4)
+                                | TyFun (a, b), TyFun (c, d) -> let s4, bool1 = funChecker ty3 ty4 in
+                                                                          let s5 = unify (eqs_of_subst (s4 @ eqs1)) in
+                                                                          if bool1 then (s5 ,subst_type s5 ty3) else err("type not match")
 
+                                | _, _ -> err("エラーだよ")
+                              )
+        | (sub1, TyVar a) ->
+                              let s = eqs_of_subst (( a, TyBool ):: sub1) in
+                              let (s1, ty1) = ty_exp tyenv exp2 in
+                              let (s2, ty2) = ty_exp tyenv exp3 in
+                              let s3 = (eqs_of_subst s1) @ (eqs_of_subst s2) @ s in
+                              let eqs1 = unify s3 in
+                              let ty3 = subst_type eqs1 ty1 in
+                              let ty4 = subst_type eqs1 ty2 in
+                                  (match ty3, ty4 with
+                                      TyInt, TyInt -> ( eqs1, ty3 )
+                                    | TyBool, TyBool -> (eqs1, ty3)
+                                    | TyVar p, TyVar q -> let eqs2 = unify ( eqs_of_subst ((q, TyVar p) :: eqs1) )
+                                                            in (eqs2, subst_type eqs2 ty3)
+                                    | TyInt, TyVar p -> let eqs2 = unify ( eqs_of_subst ((p, TyInt) :: eqs1) )
+                                                            in (eqs2, TyInt)
+                                    | TyBool, TyVar p -> let eqs2 = unify ( eqs_of_subst ((p, TyBool) :: eqs1) )
+                                                            in (eqs2, TyBool)
+                                    | TyFun(a, b), TyVar p -> let eqs2 = unify ( eqs_of_subst ((p, ty3) :: eqs1) )
+                                                            in (eqs2, ty3)
+                                    | TyVar p, TyInt -> let eqs2 = unify ( eqs_of_subst ((p, ty4) :: eqs1) )
+                                                            in (eqs2, ty4)
+                                    | TyVar p, TyBool -> let eqs2 = unify ( eqs_of_subst ((p, ty4) :: eqs1) )
+                                                            in (eqs2, ty4)
+                                    | TyVar p, TyFun (a, b) -> let eqs2 = unify ( eqs_of_subst ((p, ty4) :: eqs1) )
+                                                            in (eqs2, ty4)
+                                    | TyFun (a, b), TyFun (c, d) -> let s4, bool1 = funChecker ty3 ty4 in
+                                                                          let s5 = unify (eqs_of_subst (s4 @ eqs1)) in
+                                                                          if bool1 then (s5 ,subst_type s5 ty3) else err("type not match")
+                                    | _, _ -> err("エラーだよ")
+                                    )
+        | (_,_) -> err("ifExp Not Implemented!3")
+      )  *)
 
   | LetExp (id, exp1, exp2) -> let (a, b) = ty_exp tyenv exp1 in
                                 let (c, d) = ty_exp (Environment.extend id b tyenv) exp2 in
