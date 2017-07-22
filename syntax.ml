@@ -7,7 +7,11 @@ type binOp = | Equal | Plus | Minus | Mult | Lt | And | Or | Cons
 
 type ty = TyInt | TyBool | TyVar of tyvar | TyFun of ty * ty
 
+type tysc = TyScheme of tyvar list * ty
 
+let tysc_of_ty ty = TyScheme ([], ty)
+
+let freevar_tysc tysc = 
 
 let rec pp_ty = function  TyInt -> print_string "int"
                     | TyBool -> print_string "bool"
