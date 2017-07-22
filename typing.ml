@@ -103,4 +103,5 @@ let rec ty_exp tyenv = function
 let ty_decl tyenv = function
     Exp e -> let (_, v) = ty_exp tyenv e in (v, tyenv)
   | Decl (x, e) -> let (_, v) = ty_exp tyenv e in (v, Environment.extend x v tyenv)
+  | DeclDecl (id, e1, e2) -> let (_, v) = ty_exp tyenv e1 in (v, Environment.extend id v tyenv)
   | _ -> err ("ty_decl Not Implemented!")

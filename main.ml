@@ -15,34 +15,34 @@ let rec read_eval_print env tyenv=
   (*追加 Ex3.3.2 *)
   let rec repeat env1 tyenv1 x = 
     let (ty, newtyenv) = ty_decl tyenv1 x in
-    let (id, newenv, v, expr) = eval_decl env1 x in
-    match expr with 
+    let (id, newenv, v, expr2) = eval_decl env1 x in
+    match expr2 with 
             Nothing -> Printf.printf "val %s : " id;
                       pp_ty ty;
                       print_string " = ";
                       pp_val v;
                       print_newline();
                       read_eval_print newenv newtyenv
-          | Decl( x1, e ) -> if checker id expr 
+          | Decl( x1, e ) -> if checker id expr2 
                             then
-                            repeat newenv newtyenv expr
+                            repeat newenv newtyenv expr2
                             else
                             Printf.printf "val %s : " id;
                             pp_ty ty;
                             print_string " = ";
                             pp_val v;
                             print_newline();
-                            repeat newenv newtyenv expr
-          | DeclDecl( x1, e1, e2 ) -> if checker id expr 
+                            repeat newenv newtyenv expr2
+          | DeclDecl( x1, e1, e2 ) -> if checker id expr2 
                                     then
-                                    repeat newenv newtyenv expr
+                                    repeat newenv newtyenv expr2
                                     else
                                     Printf.printf "val %s : " id;
                                     pp_ty ty;
                                     print_string " = ";
                                     pp_val v;
                                     print_newline();
-                                    repeat newenv newtyenv expr
+                                    repeat newenv newtyenv expr2
           |_ -> raise (Failure "ohohoho")
   in repeat env tyenv decl
   with  Typing.Error s -> print_string (s ^ "\n") ; read_eval_print env tyenv
