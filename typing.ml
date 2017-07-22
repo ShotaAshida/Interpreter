@@ -24,15 +24,6 @@ let rec subst_eqs s eqs = match eqs with
                         | (a, b) :: rest -> (subst_type s a, subst_type s b) :: (subst_eqs s rest)
 
 
-let closure ty tyenv subst =
-let fv_tyenv’ = freevar_tyenv tyenv in
-let fv_tyenv =
-MySet.bigunion
-(MySet.map
-(fun id -> freevar_ty (subst_type subst (TyVar id)))
-fv_tyenv’) in
-let ids = MySet.diff (freevar_ty ty) fv_tyenv in
-TyScheme (MySet.to_list ids, ty)
 
 let rec unify a = 
   match a with
