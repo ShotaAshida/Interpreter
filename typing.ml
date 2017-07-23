@@ -3,7 +3,7 @@ exception Error of string
 let err s = raise (Error s)
 
 (* Type Environment *)
-type tyenv = ty Environment.t
+type tyenv = tysc Environment.t
 
 type subst = (tyvar * ty) list
 
@@ -22,6 +22,18 @@ let rec eqs_of_subst s = match s with
 let rec subst_eqs s eqs = match eqs with
                           [] -> [] 
                         | (a, b) :: rest -> (subst_type s a, subst_type s b) :: (subst_eqs s rest)
+
+let freevar_tyenv tyenv = 
+
+let closure ty tyenv subst =
+  let fv_tyenv' = freevar_tyenv tyenv in
+  let fv_tyenv =
+    MySet.bigunion
+      (MySet.map
+        (fun id -> freevar_ty (subst_type subst (TyVar id)))
+        fv_tyenv') in
+  let ids = MySet.diff (freevar_ty ty) fv_tyenv in
+    TyScheme (MySet.to_list ids, ty)
 
 let rec unify a = 
   match a with
@@ -58,13 +70,16 @@ let ty_prim op ty1 ty2 = match op with
 
 let rec ty_exp tyenv = function
     Var x ->
-      (try ([], Environment.lookup x tyenv) with
-          Environment.Not_bound -> err ("variable not bound: " ^ x))
+      (try 
+       let TyScheme (vars, ty) = Environment.lookup x tyenv in
+        let s = List.map (fun id -> (id, TyVar (fresh_tyvar ())))
+          vars in  ([], subst_type s ty)
+        with Environment.Not_bound -> err ("variable not bound: " ^ x))
   | ILit _ -> ([], TyInt)
   | BLit _ -> ([], TyBool)
   | BinOp (op, exp1, exp2) ->
       let (s1,ty1) = ty_exp tyenv exp1 in
-      let (s2,ty2) = ty_exp tyenv exp2 in      
+      let (s2,ty2) = ty_exp tyenv exp2 in
       let (eqs3, ty) = ty_prim op ty1 ty2 in
       let eqs = (eqs_of_subst s1) @ (eqs_of_subst s2) @ eqs3 in
       let s3 = unify eqs in (s3, subst_type s3 ty)

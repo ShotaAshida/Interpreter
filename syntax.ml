@@ -11,7 +11,14 @@ type tysc = TyScheme of tyvar list * ty
 
 let tysc_of_ty ty = TyScheme ([], ty)
 
-let freevar_tysc tysc = 
+let rec freevar_tysc tysc = let tyvars, ty = tysc in
+                            match ty with
+                                  TyVar x -> if MySet.member ty tyvars then MySet.empty
+                                                else MySet.singleton x
+                                | TyFun(x, y) -> let tyx = freevar_tysc (tyvars, x) in
+                                                    let tyy = freevar_tysc (tyvars, y) in
+                                                    MySet.union tyx tyy
+                                | _ -> MySet.empty
 
 let rec pp_ty = function  TyInt -> print_string "int"
                     | TyBool -> print_string "bool"
