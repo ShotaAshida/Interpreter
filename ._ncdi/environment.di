@@ -1,1 +1,1 @@
-environment.cmi : syntax.cmx
+environment.cmi : syntax.cmx mySet.cmi

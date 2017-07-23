@@ -23,7 +23,23 @@ let rec subst_eqs s eqs = match eqs with
                           [] -> [] 
                         | (a, b) :: rest -> (subst_type s a, subst_type s b) :: (subst_eqs s rest)
 
-let freevar_tyenv tyenv = 
+
+(* let rec freevar_tysc tysc = let tyvars, ty = tysc in
+                            match ty with
+                                  TyVar x -> if MySet.member ty tyvars then MySet.empty
+                                                else MySet.singleton x
+                                | TyFun(x, y) -> let tyx = freevar_tysc (tyvars, x) in
+                                                    let tyy = freevar_tysc (tyvars, y) in
+                                                    MySet.union tyx tyy
+                                | _ -> MySet.empty *)
+
+let rec freevar_tyenv (tyenv :tysc Environment.t) =   Environment.get_var tyenv
+                                                      (* let emp = Environment.empty in
+                                                      match tyenv with
+                                                        emp -> MySet.empty
+                                                      | (x :: rest)-> let id, tysc in
+                                                                      let tyvars, ty = tysc in
+                                                                        MySet.union (MySet.singleton ty) (freevar_tyenv rest) *)
 
 let closure ty tyenv subst =
   let fv_tyenv' = freevar_tyenv tyenv in
@@ -92,10 +108,11 @@ let rec ty_exp tyenv = function
       let eqs3 = eqs_of_subst s3 in
       let eqs = eqs1 @ eqs2 @ eqs3 @ [(ty2, ty3) ; (ty1, TyBool)] in
       let s4 = unify eqs in (s4, subst_type s4 ty2)
-      
 
-  | LetExp (id, exp1, exp2) -> let (a, b) = ty_exp tyenv exp1 in
-                                let (c, d) = ty_exp (Environment.extend id b tyenv) exp2 in
+
+  | LetExp (id, exp1, exp2) ->  let (a, b) = ty_exp tyenv exp1 in
+                                let tysc = closure b tyenv a in
+                                let (c, d) = ty_exp (Environment.extend id tysc tyenv) exp2 in
                                   let s = unify( eqs_of_subst (c @ a) ) in (s, subst_type s d )
 
   | FunExp (id, exp) -> 

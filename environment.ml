@@ -16,3 +16,7 @@ let rec fold_right f env a =
   match env with
       [] -> a
     | (_, v)::rest -> f v (fold_right f rest a)
+
+let rec get_var tyenv = match tyenv with
+                            [] -> MySet.empty
+                          | (_, v) :: rest -> let (tyvars, ty) = v in MySet.union (MySet.singleton ty) (get_var rest)
