@@ -61,11 +61,11 @@ Environment.extend "iv" (IntV 4)
            (Environment.extend "x" (IntV 10) Environment.empty)))))
 
 let initial_tyenv =
-  Environment.extend "iv" TyInt
-    (Environment.extend "iii" TyInt
-      (Environment.extend "ii" TyInt
-        (Environment.extend "i" TyInt
-          (Environment.extend "v" TyInt
-            (Environment.extend "x" TyInt Environment.empty)))))
+  Environment.extend "iv" (TyScheme([], TyInt))
+    (Environment.extend "iii" (TyScheme([], TyInt))
+      (Environment.extend "ii" (TyScheme([], TyInt))
+        (Environment.extend "i" (TyScheme([], TyInt))
+          (Environment.extend "v" (TyScheme([], TyInt))
+            (Environment.extend "x" (TyScheme([], TyInt)) Environment.empty)))))
 
 let _ = read_eval_print initial_env initial_tyenv

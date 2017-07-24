@@ -9,9 +9,9 @@ type subst = (tyvar * ty) list
 
 let rec subst_type a b = match b with
                         TyVar c ->
-                        (match a with
-                          [] -> b
-                          | (d, e) :: rest -> if d = c then subst_type a e else subst_type rest b )
+                          (match a with
+                              [] -> b
+                            | (d, e) :: rest -> if d = c then subst_type a e else subst_type rest b )
                       | TyFun (f, g) -> TyFun ( subst_type a f, subst_type a g )
                       | _ -> b
 
@@ -33,13 +33,13 @@ let rec subst_eqs s eqs = match eqs with
                                                     MySet.union tyx tyy
                                 | _ -> MySet.empty *)
 
-let rec freevar_tyenv (tyenv :tysc Environment.t) =   Environment.get_var tyenv
-                                                      (* let emp = Environment.empty in
-                                                      match tyenv with
-                                                        emp -> MySet.empty
-                                                      | (x :: rest)-> let id, tysc in
-                                                                      let tyvars, ty = tysc in
-                                                                        MySet.union (MySet.singleton ty) (freevar_tyenv rest) *)
+
+
+let rec freevar_tyenv (tyenv :tysc Environment.t) = let f v a = 
+                                                      (match v with
+                                                          TyScheme(tyvars, _) -> MySet.union (MySet.from_list tyvars) a
+                                                        | _ -> err("Error of freevar_tyenv\n")) in
+                                                    Environment.fold_right f tyenv (MySet.empty)
 
 let closure ty tyenv subst =
   let fv_tyenv' = freevar_tyenv tyenv in
@@ -116,10 +116,12 @@ let rec ty_exp tyenv = function
                                   let s = unify( eqs_of_subst (c @ a) ) in (s, subst_type s d )
 
   | FunExp (id, exp) -> 
-    let domty = TyVar (fresh_tyvar ()) in
-    let s, ranty =
-      ty_exp (Environment.extend id domty tyenv) exp in
-       (s, TyFun (subst_type s domty, ranty))
+    let domty = 
+      let newvar = fresh_tyvar () in
+                  TyVar newvar in
+      let s, ranty =
+        ty_exp (Environment.extend id (TyScheme( [], domty )) tyenv) exp in
+        (s, TyFun (subst_type s domty, ranty))
 
   | AppExp (exp1, exp2) ->  let (s1, ty1) = ty_exp tyenv exp1 in
                             let (s2, ty2) = ty_exp tyenv exp2 in
@@ -134,6 +136,8 @@ let rec ty_exp tyenv = function
 
 let ty_decl tyenv = function
     Exp e -> let (_, v) = ty_exp tyenv e in (v, tyenv)
-  | Decl (x, e) -> let (_, v) = ty_exp tyenv e in (v, Environment.extend x v tyenv)
-  | DeclDecl (id, e1, e2) -> let (_, v) = ty_exp tyenv e1 in (v, Environment.extend id v tyenv)
+  | Decl (x, e) -> let (subst, v) = ty_exp tyenv e in
+                    let tysc = closure v tyenv subst in (v, Environment.extend x tysc tyenv)
+  | DeclDecl (id, e1, e2) -> let (subst, v) = ty_exp tyenv e1 in
+                                let tysc = closure v tyenv subst in (v, Environment.extend id tysc tyenv)
   | _ -> err ("ty_decl Not Implemented!")
