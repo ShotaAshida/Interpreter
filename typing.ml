@@ -40,6 +40,18 @@ let rec freevar_tyenv (tyenv :tysc Environment.t) = let f v a =
                                                           TyScheme(tyvars, _) -> MySet.union (MySet.from_list tyvars) a
                                                         | _ -> err("Error of freevar_tyenv\n")) in
                                                     Environment.fold_right f tyenv (MySet.empty)
+                                                    
+let tyscChecker tysc = match tysc with
+                        TyScheme ([], ty) -> false
+                        | _ -> true
+
+let tyscPrinter tysc = match tysc with
+                              TyScheme ([], ty) -> print_string("Nothing\n")
+                            | TyScheme (lis, ty) -> let rec printer vars = match vars with
+                                                                                [] -> print_string(":::\n")
+                                                                              | x :: rest -> print_int x ; printer rest
+                                                    in printer lis
+
 
 let closure ty tyenv subst =
   let fv_tyenv' = freevar_tyenv tyenv in
@@ -49,7 +61,11 @@ let closure ty tyenv subst =
         (fun id -> freevar_ty (subst_type subst (TyVar id)))
         fv_tyenv') in
   let ids = MySet.diff (freevar_ty ty) fv_tyenv in
-    TyScheme (MySet.to_list ids, ty)
+    let rec printer vars = (match vars with
+                            [] -> print_string("closure:::\n")
+                          | x :: rest -> print_int x; print_string(" ") ; printer rest)
+    in printer (MySet.to_list fv_tyenv');
+  TyScheme (MySet.to_list ids, ty)
 
 let rec unify a = 
   match a with
@@ -88,6 +104,10 @@ let rec ty_exp tyenv = function
     Var x ->
       (try 
        let TyScheme (vars, ty) = Environment.lookup x tyenv in
+        let rec printer vars = (match vars with
+                            [] -> print_string("var:::\n")
+                          | x :: rest -> print_int x; print_string(" ") ; printer rest)
+        in printer vars;
         let s = List.map (fun id -> (id, TyVar (fresh_tyvar ())))
           vars in  ([], subst_type s ty)
         with Environment.Not_bound -> err ("variable not bound: " ^ x))
@@ -112,13 +132,12 @@ let rec ty_exp tyenv = function
 
   | LetExp (id, exp1, exp2) ->  let (a, b) = ty_exp tyenv exp1 in
                                 let tysc = closure b tyenv a in
+                                print_string("letexp "); tyscPrinter tysc;
                                 let (c, d) = ty_exp (Environment.extend id tysc tyenv) exp2 in
-                                  let s = unify( eqs_of_subst (c @ a) ) in (s, subst_type s d )
+                                let s = unify( eqs_of_subst (c @ a) ) in (s, subst_type s d )
 
   | FunExp (id, exp) -> 
-    let domty = 
-      let newvar = fresh_tyvar () in
-                  TyVar newvar in
+    let domty = TyVar (fresh_tyvar ()) in
       let s, ranty =
         ty_exp (Environment.extend id (TyScheme( [], domty )) tyenv) exp in
         (s, TyFun (subst_type s domty, ranty))
@@ -137,7 +156,7 @@ let rec ty_exp tyenv = function
 let ty_decl tyenv = function
     Exp e -> let (_, v) = ty_exp tyenv e in (v, tyenv)
   | Decl (x, e) -> let (subst, v) = ty_exp tyenv e in
-                    let tysc = closure v tyenv subst in (v, Environment.extend x tysc tyenv)
+                    let tysc = closure v tyenv subst  in tyscPrinter tysc ; (v, Environment.extend x tysc tyenv)
   | DeclDecl (id, e1, e2) -> let (subst, v) = ty_exp tyenv e1 in
                                 let tysc = closure v tyenv subst in (v, Environment.extend id tysc tyenv)
   | _ -> err ("ty_decl Not Implemented!")
