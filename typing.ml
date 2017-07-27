@@ -34,18 +34,18 @@ let rec unify a =
           | (TyBool, TyBool) -> unify rest
           | (TyVar tyvar, TyInt) -> [ (tyvar, TyInt) ] @ unify ( subst_eqs [(tyvar, TyInt)] rest )
           | (TyVar tyvar, TyBool) -> [ (tyvar, TyBool) ] @ unify ( subst_eqs [(tyvar, TyBool)] rest )
-             | (TyVar tyvar, TyFun(b, c)) -> let varlist = freevar_ty (TyFun (b, c)) in
-                                      if MySet.member tyvar varlist then err("can't unify") 
+          | (TyVar tyvar, TyFun(b, c)) -> let varlist = freevar_ty (TyFun (b, c)) in
+                                      if MySet.member tyvar varlist then err("can't unify1") 
                                        else  [(tyvar, TyFun(b, c))] @ unify ( subst_eqs [(tyvar, TyFun(b, c))] rest )    
           | (TyInt, TyVar tyvar) -> [ (tyvar, TyInt) ] @ unify ( subst_eqs [(tyvar, TyInt)] rest )
           | (TyBool, TyVar tyvar) -> [ (tyvar, TyBool) ] @ unify ( subst_eqs [(tyvar, TyBool)] rest )
           | (TyFun(a, b), TyVar tyvar) -> let varlist = freevar_ty (TyFun (a, b)) in
-                                      if MySet.member tyvar varlist then err("can't unify") 
+                                      if MySet.member tyvar varlist then err("can't unify2") 
                                       else  [ (tyvar, TyFun(a,b)) ] @ unify ( subst_eqs [(tyvar, TyFun(a,b))] rest )
           | (TyFun (x1, y1), TyFun (x2, y2)) -> unify( [(x1, x2) ; (y1, y2)] @ rest)
           | (TyVar tyvar, TyVar b) -> if (tyvar = b) then unify rest else
                                   [ (tyvar, TyVar b) ] @ unify ( subst_eqs [(tyvar, TyVar b)] rest ) 
-          | (_, _) -> err ("can't unify")
+          | (_, _) -> err ("can't unify3")
 
 
 let ty_prim op ty1 ty2 = match op with
@@ -96,9 +96,8 @@ let rec ty_exp tyenv = function
                             let eqs1 = eqs_of_subst s1 in
                             let eqs2 = eqs_of_subst s2 in
                             let midty1 = TyVar (fresh_tyvar()) in
-                            let midty2 = TyVar (fresh_tyvar()) in
-                            let eqs = eqs1 @ eqs2 @ [ (TyFun (midty1, midty2) , ty1) ; (midty1, ty2) ] in
-                            let s3 = unify eqs in (s3, subst_type s3 midty2)
+                            let eqs = eqs1 @ eqs2 @ [(TyFun (ty2, midty1) , ty1)] in
+                            let s3 = unify eqs in (s3, subst_type s3 midty1)
 
   | _ -> err ("ty_exp Not Implemented!")
 
