@@ -11,19 +11,21 @@ type tysc = TyScheme of tyvar list * ty
 
 let tysc_of_ty ty = TyScheme ([], ty)
 
-let rec freevar_tysc tysc = let tyvars, ty = tysc in
-                            match ty with
-                                  TyVar x -> if MySet.member ty tyvars then MySet.empty
-                                                else MySet.singleton x
-                                | TyFun(x, y) -> let tyx = freevar_tysc (tyvars, x) in
-                                                    let tyy = freevar_tysc (tyvars, y) in
-                                                    MySet.union tyx tyy
-                                | _ -> MySet.empty
+let rec freevar_ty = function
+                          TyVar x -> MySet.singleton x
+                        | TyFun (x, y) -> let tyx = freevar_ty x in
+                                            let tyy = freevar_ty y in
+                                                MySet.union tyx tyy
+                        | _ -> MySet.empty
+
+let rec freevar_tysc (tysc :tysc) = match tysc with
+                                        TyScheme(tyvars, ty) -> let in_tyvars = freevar_ty ty in
+                                                                    MySet.diff in_tyvars  (MySet.from_list tyvars) 
 
 let rec pp_ty = function  TyInt -> print_string "int"
-                    | TyBool -> print_string "bool"
-                    | TyVar x -> print_string ("'a" ^ string_of_int x) 
-                    | TyFun (x, y) -> print_string "(" ; pp_ty x ; print_string " -> ";  pp_ty y ; print_string ")"
+                        | TyBool -> print_string "bool"
+                        | TyVar x -> print_string ("'a" ^ string_of_int x) 
+                        | TyFun (x, y) -> print_string "(" ; pp_ty x ; print_string " -> ";  pp_ty y ; print_string ")"
 
 let fresh_tyvar = let counter = ref 0 in 
                     let body () = 
@@ -31,12 +33,7 @@ let fresh_tyvar = let counter = ref 0 in
                             counter := v + 1 ; v in body
 
 
-let rec freevar_ty = function
-                          TyVar x -> MySet.singleton x
-                        | TyFun (x, y) -> let tyx = freevar_ty x in
-                                            let tyy = freevar_ty y in
-                                                MySet.union tyx tyy
-                        | _ -> MySet.empty
+
 
 type exp =
     Var of id

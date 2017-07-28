@@ -7,4 +7,3 @@ val extend : Syntax.id -> 'a -> 'a t -> 'a t
 val lookup : Syntax.id -> 'a t -> 'a
 val map : ('a -> 'b) -> 'a t -> 'b t
 val fold_right : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-val get_var : ('a * ('b * 'c)) list -> 'c MySet.t
